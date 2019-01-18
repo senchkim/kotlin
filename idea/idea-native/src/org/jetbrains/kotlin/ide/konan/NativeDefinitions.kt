@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.ide.konan
 
 import com.intellij.lang.*
+import com.intellij.lang.injection.MultiHostInjector
+import com.intellij.lang.injection.MultiHostRegistrar
 import com.intellij.lexer.FlexAdapter
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.options.colors.*
@@ -13,6 +15,7 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.fileTypes.*
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.tree.*
@@ -21,7 +24,9 @@ import javax.swing.Icon
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.konan.library.KDEFINITIONS_FILE_EXTENSION
 import org.jetbrains.kotlin.ide.konan.psi.NativeDefinitionsFile
+import org.jetbrains.kotlin.ide.konan.psi.impl.NativeDefinitionsFirstHalfImpl
 import org.jetbrains.kotlin.ide.konan.psi.impl.NativeDefinitionsTypes
+import java.lang.StringBuilder
 
 
 const val NATIVE_DEFINITIONS_NAME = "KND"
@@ -95,51 +100,29 @@ class NativeDefinitionsSyntaxHighlighterFactory : SyntaxHighlighterFactory() {
         NativeDefinitionsSyntaxHighlighter()
 }
 
-class NativeDefinitionsColorSettingsPage : ColorSettingsPage {
+class PropertiesEscaper(host: NativeDefinitionsFirstHalfImpl): LiteralTextEscaper<NativeDefinitionsFirstHalfImpl>(host) {
+    override fun isOneLine(): Boolean = false
 
-    override fun getIcon(): Icon? = KotlinIcons.NATIVE
+    override fun getOffsetInHost(offsetInDecoded: Int, rangeInsideHost: TextRange): Int = offsetInDecoded
 
-    override fun getHighlighter(): SyntaxHighlighter = NativeDefinitionsSyntaxHighlighter()
-
-    override fun getDemoText(): String {
-        return """headers = curl/curl.h
-# Unspecified options.
-linkerOpts = -DBAR=bar
-! Specified options.
-compilerOpts.linux = -I/usr/include -I/usr/include/x86_64-linux-gnu
-
----
-
-struct Hash { // Line comment.
-    int data[2];
-};
-
-/**********************
- * Multiline comment. *
- **********************/
-inline static int strangeSum(const int* buffer, int bufferSize) {
-    int result = 20;
-    const char * stringLiteral = "This is a string";
-    for (int i = 0; i < bufferSize; ++i) {
-        result += stringLiteral[i % 10] & 1 == 0 ? (i << 1) : buffer[i / 2];
+    override fun decode(rangeInsideHost: TextRange, outChars: StringBuilder): Boolean {
+        outChars.append(myHost.text)
+        return true
     }
-    return result;
+
 }
-"""
+
+class PropertiesLanguageInjector: MultiHostInjector {
+    val propertiesLanguage = Language.findLanguageByID("Properties");
+
+    override fun getLanguagesToInject(registrar: MultiHostRegistrar, context: PsiElement) {
+        val ktHost = context as? NativeDefinitionsFirstHalfImpl ?: return
+        if (!context.isValidHost || propertiesLanguage == null) return
+
+        registrar.startInjecting(propertiesLanguage).addPlace(null,null, context, context.getTextRange()).doneInjecting()
     }
 
-    override fun getAdditionalHighlightingTagToDescriptorMap(): Map<String, TextAttributesKey>? = null
-
-    override fun getAttributeDescriptors(): Array<AttributesDescriptor> {
-        infix fun String.to(keys: Array<TextAttributesKey>) = AttributesDescriptor(this, keys[0])
-
-        return arrayOf(
-            "Comment" to NativeDefinitionsSyntaxHighlighter.DELIM_KEYS,
-            "Identifier" to NativeDefinitionsSyntaxHighlighter.INJECTION_KEYS
-        )
+    override fun elementsToInjectIn(): List<Class<out PsiElement>> {
+        return listOf(NativeDefinitionsFirstHalfImpl::class.java)
     }
-
-    override fun getColorDescriptors(): Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY
-
-    override fun getDisplayName(): String = NATIVE_DEFINITIONS_NAME
 }
