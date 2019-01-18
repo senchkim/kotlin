@@ -1,0 +1,23 @@
+{
+  parserClass="org.jetbrains.kotlin.ide.konan.NativeDefinitionsParser"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="NativeDefinitions"
+  psiImplClassSuffix="Impl"
+  psiPackage="org.jetbrains.kotlin.ide.konan.psi"
+  psiImplPackage="org.jetbrains.kotlin.ide.konan.psi.impl"
+
+  elementTypeHolderClass="org.jetbrains.kotlin.ide.konan.psi.impl.NativeDefinitionsTypes"
+  elementTypeClass="org.jetbrains.kotlin.ide.konan.psi.NativeDefinitionsElementType"
+  tokenTypeClass="org.jetbrains.kotlin.ide.konan.psi.NativeDefinitionsTokenType"
+}
+
+ROOT ::= FIRST_HALF (DELIM SECOND_HALF)?
+FIRST_HALF ::= A_LINE*
+SECOND_HALF ::= A_LINE*
+
+
+
+
+
