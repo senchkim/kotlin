@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    compile(kotlinStdlibWithoutAnnotations())
+    compile(kotlinStdlib())
     compileOnly(project(":kotlin-reflect-api"))
     compile(project(":compiler:util"))
     compile(project(":compiler:cli-common"))

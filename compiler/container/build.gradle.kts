@@ -8,10 +8,10 @@ jvmTarget = "1.6"
 dependencies {
     compile(project(":core:util.runtime"))
     compile(commonDep("javax.inject"))
-    compileOnly(kotlinStdlibWithoutAnnotations())
+    compileOnly(kotlinStdlib())
     compileOnly("org.jetbrains:annotations:13.0")
     compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
-    testCompile(kotlinStdlibWithoutAnnotations())
+    testCompile(kotlinStdlib())
     testCompileOnly("org.jetbrains:annotations:13.0")
     testCompile(project(":kotlin-test:kotlin-test-jvm"))
     testCompile(project(":kotlin-test:kotlin-test-junit"))

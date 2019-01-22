@@ -6,7 +6,7 @@ plugins {
 }
 
 dependencies {
-    compile(kotlinStdlibWithoutAnnotations())
+    compile(kotlinStdlib())
 }
 
 jvmTarget = "1.6"

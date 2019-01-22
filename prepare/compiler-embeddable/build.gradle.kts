@@ -6,7 +6,7 @@ plugins {
 }
 
 dependencies {
-    runtime(kotlinStdlibWithoutAnnotations())
+    runtime(kotlinStdlib())
     runtime(project(":kotlin-script-runtime"))
     runtime(project(":kotlin-reflect"))
     runtime(commonDep("org.jetbrains.intellij.deps", "trove4j"))

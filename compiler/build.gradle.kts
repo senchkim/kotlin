@@ -45,7 +45,7 @@ dependencies {
     testCompile(project(":kotlin-script-runtime"))
     testCompile(project(":kotlin-test:kotlin-test-jvm"))
     
-    testCompile(kotlinStdlibWithoutAnnotations())
+    testCompile(kotlinStdlib())
 
     testCompile(commonDep("junit:junit"))
     testCompileOnly(project(":kotlin-test:kotlin-test-jvm"))

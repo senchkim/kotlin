@@ -1,14 +1,12 @@
 @file:Suppress("unused") // usages in build scripts are not tracked properly
 
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.AbstractCopyTask
-import org.gradle.kotlin.dsl.exclude
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.project
 import java.io.File
@@ -30,11 +28,11 @@ fun Project.commonDep(group: String, artifact: String, vararg suffixesAndClassif
 }
 
 fun Project.commonVer(group: String, artifact: String) =
-        when {
-            rootProject.extra.has("versions.$artifact") -> rootProject.extra["versions.$artifact"]
-            rootProject.extra.has("versions.$group") -> rootProject.extra["versions.$group"]
-            else -> throw GradleException("Neither versions.$artifact nor versions.$group is defined in the root project's extra")
-        }
+    when {
+        rootProject.extra.has("versions.$artifact") -> rootProject.extra["versions.$artifact"]
+        rootProject.extra.has("versions.$group") -> rootProject.extra["versions.$group"]
+        else -> throw GradleException("Neither versions.$artifact nor versions.$group is defined in the root project's extra")
+    }
 
 fun Project.preloadedDeps(vararg artifactBaseNames: String, baseDir: File = File(rootDir, "dependencies"), subdir: String? = null, optional: Boolean = false): ConfigurableFileCollection {
     val dir = if (subdir != null) File(baseDir, subdir) else baseDir
@@ -45,8 +43,8 @@ fun Project.preloadedDeps(vararg artifactBaseNames: String, baseDir: File = File
     val matchingFiles = dir.listFiles { file -> artifactBaseNames.any { file.matchMaybeVersionedArtifact(it) } }
     if (matchingFiles == null || matchingFiles.size < artifactBaseNames.size) {
         throw GradleException("Not all matching artifacts '${artifactBaseNames.joinToString()}' found in the '$dir' " +
-                              "(missing: ${artifactBaseNames.filterNot { request -> matchingFiles.any { it.matchMaybeVersionedArtifact(request) } }.joinToString()};" +
-                              " found: ${matchingFiles?.joinToString { it.name }})")
+                                      "(missing: ${artifactBaseNames.filterNot { request -> matchingFiles.any { it.matchMaybeVersionedArtifact(request) } }.joinToString()};" +
+                                      " found: ${matchingFiles?.joinToString { it.name }})")
     }
     return files(*matchingFiles.map { it.canonicalPath }.toTypedArray())
 }
@@ -59,10 +57,7 @@ fun Project.ideaUltimatePreloadedDeps(vararg artifactBaseNames: String, subdir: 
 
 fun Project.kotlinDep(artifactBaseName: String, version: String): String = "org.jetbrains.kotlin:kotlin-$artifactBaseName:$version"
 
-val Project.useBootstrapStdlib: Boolean get() =
-    findProperty("useBootstrapStdlib")?.let { it.toString() != "false" }
-        ?: findProperty("jpsBuild")?.let { it.toString() == "true" }
-        ?: false
+val Project.useBootstrapStdlib: Boolean get() = findProperty("useBootstrapStdlib")?.let { it.toString() != "false" } ?: false
 
 fun Project.kotlinStdlib(suffix: String? = null): Any {
     return if (useBootstrapStdlib)
@@ -70,11 +65,6 @@ fun Project.kotlinStdlib(suffix: String? = null): Any {
     else
         dependencies.project(listOfNotNull(":kotlin-stdlib", suffix).joinToString("-"))
 }
-
-fun Project.kotlinStdlibWithoutAnnotations(suffix: String? = null): Any =
-    dependencies.create(kotlinStdlib(suffix)).also {
-        (it as ModuleDependency).exclude("org.jetbrains", "annotations")
-    }
 
 @Deprecated("Depend on the default configuration instead", ReplaceWith("project(name)"))
 fun DependencyHandler.projectDist(name: String): ProjectDependency = project(name)
